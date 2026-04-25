@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { execFile } from "node:child_process";
+import { resolveOpenClawConfigPath } from "./paths.js";
 
 interface GatewayConfig {
   url: string;
@@ -17,7 +18,7 @@ async function readOpenClawConfig(): Promise<{
   authMode?: "token" | "password";
   password?: string;
 }> {
-  const configPath = path.join(os.homedir(), ".openclaw", "openclaw.json");
+  const configPath = resolveOpenClawConfigPath();
   try {
     const content = await fs.readFile(configPath, "utf-8");
     const config = JSON.parse(content);
@@ -38,6 +39,10 @@ async function getGatewayConfig(): Promise<GatewayConfig> {
   const config = await readOpenClawConfig();
   const port = config.port ?? 18789;
 
+  // PRIORIDADE para variável de ambiente
+  const envUrl = process.env.OPENCLAW_GATEWAY_URL;
+  const envToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+
   // Compute a unified secret: use password when mode is "password", otherwise use token.
   // The gateway accepts Bearer <secret> for both modes — it just compares against the
   // configured token or password depending on the auth mode.
@@ -49,8 +54,8 @@ async function getGatewayConfig(): Promise<GatewayConfig> {
   }
 
   return {
-    url: `http://127.0.0.1:${port}`,
-    token: config.token,
+    url: envUrl || `http://127.0.0.1:${port}`,
+    token: envToken || config.token,
     secret,
   };
 }
