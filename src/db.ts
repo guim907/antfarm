@@ -2,8 +2,9 @@ import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { resolveOpenClawStateDir } from "./installer/paths.js";
 
-const DB_DIR = path.join(os.homedir(), ".openclaw", "antfarm");
+const DB_DIR = path.join(resolveOpenClawStateDir(), "antfarm");
 const DB_PATH = path.join(DB_DIR, "antfarm.db");
 
 let _db: DatabaseSync | null = null;
